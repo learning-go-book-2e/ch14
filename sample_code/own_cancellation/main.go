@@ -8,34 +8,31 @@ import (
 )
 
 func main() {
-	calcWithTimeout(1_000_000)
-	calcWithTimeout(10_000_000)
-	calcWithTimeout(10_000_000_000)
-	calcWithoutTimeout(20_000_000)
+	calcWithTimeout(1)
+	calcWithTimeout(2)
+	calcWithTimeout(5)
+	calcWithTimeout(10)
 }
 
-func calcWithoutTimeout(precision int) {
-	ctx := context.Background()
-	result, err := calcPi(ctx, precision)
-	fmt.Println(result)
-	fmt.Println(err)
-}
-
-func calcWithTimeout(precision int) {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
+func calcWithTimeout(numSeconds time.Duration) {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), numSeconds*time.Second)
 	defer cancelFunc()
-	result, err := calcPi(ctx, precision)
+	start := time.Now()
+	result, err := calcPi(ctx)
+	calcTime := time.Since(start)
 	fmt.Println(result)
+	fmt.Println(calcTime)
 	fmt.Println(err)
 }
 
-func calcPi(ctx context.Context, precision int) (string, error) {
+func calcPi(ctx context.Context) (string, error) {
 	var sum big.Float
 	sum.SetInt64(0)
 	var d big.Float
 	d.SetInt64(1)
 	two := big.NewFloat(2)
-	for i := 0; i < precision; i++ {
+	i := 0
+	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("cancelled after", i, "iterations")
@@ -51,7 +48,6 @@ func calcPi(ctx context.Context, precision int) (string, error) {
 			sum.Sub(&sum, &diff)
 		}
 		d.Add(&d, two)
+		i++
 	}
-	fmt.Println("completed", precision, "iterations")
-	return sum.Text('g', 100), nil
 }
