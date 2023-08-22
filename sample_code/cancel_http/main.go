@@ -36,7 +36,10 @@ func main() {
 				cancelFunc()
 				return
 			}
-			ch <- "success from status"
+			select {
+			case ch <- "success from status":
+			case <-ctx.Done():
+			}
 			time.Sleep(1 * time.Second)
 		}
 	}()
@@ -49,7 +52,10 @@ func main() {
 				cancelFunc()
 				return
 			}
-			ch <- "success from delay: " + resp.Header.Get("date")
+			select {
+			case ch <- "success from delay: " + resp.Header.Get("date"):
+			case <-ctx.Done():
+			}
 		}
 	}()
 loop:

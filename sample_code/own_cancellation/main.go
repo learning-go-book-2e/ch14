@@ -33,11 +33,9 @@ func calcPi(ctx context.Context) (string, error) {
 	two := big.NewFloat(2)
 	i := 0
 	for {
-		select {
-		case <-ctx.Done():
+		if err := context.Cause(ctx); err != nil {
 			fmt.Println("cancelled after", i, "iterations")
-			return sum.Text('g', 100), context.Cause(ctx)
-		default:
+			return sum.Text('g', 100), err
 		}
 		var diff big.Float
 		diff.SetInt64(4)
